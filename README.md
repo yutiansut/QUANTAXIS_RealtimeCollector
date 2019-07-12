@@ -1,7 +1,12 @@
 # QAREALTIMEMARKETCOLLECTOR
 quantaxis 实时行情采集/分发
 
-从QAREALTIME_SOLUTION 拆出来
+本项目从QAREALTIME_SOLUTION 拆出来
+
+```
+pip install qarealtime_collector
+```
+
 
 适配两种行情采集
 
