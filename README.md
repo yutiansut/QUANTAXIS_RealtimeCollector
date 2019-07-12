@@ -1,0 +1,2 @@
+# QAREALTIMEMARKETCOLLECTOR
+quantaxis 实时行情采集/分发
