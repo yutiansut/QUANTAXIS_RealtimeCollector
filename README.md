@@ -8,6 +8,14 @@ pip install qarealtime_collector
 ```
 
 
+## 系统环境
+
+为了适配 QA_Service的docker
+
+- EventMQ_IP  默认 127.0.0.1
+- MONGODB  默认 127.0.01
+
+
 适配两种行情采集
 
 - 快期的5挡websocket行情
