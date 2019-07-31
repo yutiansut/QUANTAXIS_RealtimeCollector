@@ -33,7 +33,7 @@ def read(fname):
 NAME = "qarealtime_collector"
 """
 """
-PACKAGES = ["QARMC", "QARMC.collectors"]
+PACKAGES = ["QARealtimeCollector", "QARealtimeCollector.collectors"]
 """
 """
 
@@ -47,7 +47,7 @@ KEYWORDS = ["quantaxis", "quant", "finance", "Backtest", 'Framework']
 
 AUTHOR_EMAIL = "yutiansut@qq.com"
 
-URL = "https://github.com/yutiansut/QAREALTIMEMARKETCOLLECTOR"
+URL = "https://github.com/yutiansut/QUANTAXIS_RealtimeCollector"
 
 
 LICENSE = "MIT"
