@@ -1,0 +1,2 @@
+
+qarealtimecollector
