@@ -1,1 +1,2 @@
-from QAR
+from QARealtimeCollector.collectors.ctpbeecollector import QARealtimeCollector_CtpBeeCollector
+from QARealtimeCollector.collectors.wscollector import QARealtimeCollector_WsCollector

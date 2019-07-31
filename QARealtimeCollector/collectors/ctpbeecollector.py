@@ -109,13 +109,13 @@ class QARealtimeCollector_CtpBeeCollector():
 
 
 if __name__ == '__main__':
+    pass
+    # import click
+    # @click.command()
+    # @click.option('--code', default='au1910')
+    # def handler(code):
+    #     r = QARealtimeCollector_CtpBeeCollector(code)
 
-    import click
-    @click.command()
-    @click.option('--code', default='au1910')
-    def handler(code):
-        r = QARealtimeCollector_CtpBeeCollector(code)
+    #     r.start()
 
-        r.start()
-
-    handler()
+    # handler()

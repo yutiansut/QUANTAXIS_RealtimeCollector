@@ -1,8 +1,8 @@
 __version__ = '0.0.1'
 __author__ = 'yutiansut'
 
-from QARealtimeCollector.collectors.ctpbeecollector import QARealtimeCollector_CtpBeeCollector
-from QARealtimeCollector.collectors.wscollector import QARealtimeCollector_WsCollector
+from QARealtimeCollector.collectors import (
+    QARealtimeCollector_CtpBeeCollector, QARealtimeCollector_WsCollector)
 
 
 def start():
