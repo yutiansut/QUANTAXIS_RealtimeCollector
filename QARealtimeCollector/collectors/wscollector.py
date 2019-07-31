@@ -10,7 +10,7 @@ import time
 import json
 import pymongo
 from QARealtimeCollector.util import fix_dict
-
+from QARealtimeCollector.setting import  mongo_ip, eventmq_ip
 
 class QARealtimeCollector_WsCollector(QA_Thread):
     def __init__(self):
@@ -27,11 +27,11 @@ class QARealtimeCollector_WsCollector(QA_Thread):
                 ws.send(peek())
             threading.Thread(target=run, daemon=False).start()
 
-        self.quoteclient = pymongo.MongoClient().QAREALTIME.realtimeQuote
+        self.quoteclient = pymongo.MongoClient(host=mongo_ip).QAREALTIME.realtimeQuote
         self.ws.on_open = _onopen
         self.data = {}
         self.subscribe_list = ['SHFE.rb1910', 'DCE.j1909']
-        self.sub = subscriber(exchange='QAQuote')
+        self.sub = subscriber(host=eventmq_ip, exchange='QAQuote')
         self.sub.callback = self.callback
         threading.Thread(target=self.ws.run_forever,
                          name='market_websock', daemon=False).start()

@@ -5,20 +5,21 @@ from QAPUBSUB import consumer, producer
 from QAREALTIME.setting import (market_data_ip, market_data_password,
                                 market_data_user)
 from QUANTAXIS.QAUtil.QALogs import QA_util_log_info
+from QARealtimeCollector.setting import mongo_ip, eventmq_ip
 
 
 class QARealtimeCollector_CtpBeeCollector():
     def __init__(self, code):
         self.data = {}
         self.min5_data = {}
-        self.pro = producer.publisher(exchange='1min_{}'.format(
-            code), user=market_data_user, password=market_data_password, host=market_data_ip)
-        self.pro_realtimemin = producer.publisher(exchange='realtime_min_{}'.format(
-            code), user=market_data_user, password=market_data_password, host=market_data_ip)
+        self.pro = producer.publisher(host=eventmq_ip, exchange='1min_{}'.format(code), 
+                user=market_data_user, password=market_data_password)
+        self.pro_realtimemin = producer.publisher(host=eventmq_ip, exchange='realtime_min_{}'.format(
+            code), user=market_data_user, password=market_data_password)
         self.is_send = False
         self.last_volume = 0
-        self.c = consumer.subscriber_routing(
-            exchange='CTPX', routing_key=code, user=market_data_user, password=market_data_password, host=market_data_ip)
+        self.c = consumer.subscriber_routing(host=eventmq_ip,
+                                             exchange='CTPX', routing_key=code, user=market_data_user, password=market_data_password)
 
     def create_new(self, new_tick):
         """
