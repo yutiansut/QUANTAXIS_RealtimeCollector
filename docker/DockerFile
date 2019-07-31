@@ -1,5 +1,10 @@
 FROM yutiansut/qabase:latest
 
 RUN \
-git clone https://github.com/yutiansut/QUANTAXIS_RealtimeCollector \
-&& cd QUANTAXIS_RealtimeCollector
+    git clone https://github.com/yutiansut/QUANTAXIS_RealtimeCollector \
+    && cd QUANTAXIS_RealtimeCollector && pip install -e .
+
+COPY start_collector.sh ~/
+
+
+CMD ["bash", "start_collector.sh"]
