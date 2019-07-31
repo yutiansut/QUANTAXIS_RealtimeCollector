@@ -13,6 +13,9 @@ pip install qarealtime_collector
 - 快期的5挡websocket行情
 - ctp直连的tick
 
+- 股票的5挡行情订阅推送
+    (包括A股/指数/创业板)
+
 
 会产生
 
