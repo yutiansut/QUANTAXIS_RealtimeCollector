@@ -15,6 +15,7 @@ pip install qarealtime_collector
 - EventMQ_IP  默认 127.0.0.1
 - MONGODB  默认 127.0.01
 
+## 关于采集
 
 适配两种行情采集
 
