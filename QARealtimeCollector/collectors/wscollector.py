@@ -9,10 +9,10 @@ import click
 import time
 import json
 import pymongo
-from QARMC.util import fix_dict
+from QARealtimeCollector.util import fix_dict
 
 
-class QARMC_WsCollector(QA_Thread):
+class QARealtimeCollector_WsCollector(QA_Thread):
     def __init__(self):
 
         super().__init__()
@@ -82,4 +82,4 @@ class QARMC_WsCollector(QA_Thread):
 
 
 if __name__ == "__main__":
-    QARMC_WsCollector().start()
+    QARealtimeCollector_WsCollector().start()

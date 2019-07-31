@@ -18,7 +18,7 @@ if sys.version_info.major != 3 or sys.version_info.minor not in [4, 5, 6, 7, 8]:
     print('wrong version, should be 3.4/3.5/3.6/3.7/3.8 version')
     sys.exit()
 
-with io.open('QARMC/__init__.py', 'rt', encoding='utf8') as f:
+with io.open('QARealtimeCollector/__init__.py', 'rt', encoding='utf8') as f:
     context = f.read()
     VERSION = re.search(r'__version__ = \'(.*?)\'', context).group(1)
     AUTHOR = re.search(r'__author__ = \'(.*?)\'', context).group(1)
@@ -37,7 +37,7 @@ PACKAGES = ["QARealtimeCollector", "QARealtimeCollector.collectors"]
 """
 """
 
-DESCRIPTION = "QARMC: QUANTAXIS REALTIME MARKETDATA COLLECTORS"
+DESCRIPTION = "QARealtimeCollector: QUANTAXIS REALTIME MARKETDATA COLLECTORS"
 
 
 
@@ -69,6 +69,7 @@ setup(
     install_requires=['quantaxis','quantaxis_pubsub'],
     entry_points={
         'console_scripts': [
+            'QARC_Start:QARealtimeCollector.__init__:start'
         ]
     },
     # install_requires=requirements,

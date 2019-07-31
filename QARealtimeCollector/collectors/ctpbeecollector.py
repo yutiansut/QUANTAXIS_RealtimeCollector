@@ -7,7 +7,7 @@ from QAREALTIME.setting import (market_data_ip, market_data_password,
 from QUANTAXIS.QAUtil.QALogs import QA_util_log_info
 
 
-class QARMC_CtpBeeCollector():
+class QARealtimeCollector_CtpBeeCollector():
     def __init__(self, code):
         self.data = {}
         self.min5_data = {}
@@ -114,7 +114,7 @@ if __name__ == '__main__':
     @click.command()
     @click.option('--code', default='au1910')
     def handler(code):
-        r = QARMC_CtpBeeCollector(code)
+        r = QARealtimeCollector_CtpBeeCollector(code)
 
         r.start()
 
