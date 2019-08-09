@@ -1,53 +1,20 @@
 from QUANTAXIS.QAFetch.QATdx_adv import QA_Tdx_Executor
 from QUANTAXIS.QAEngine.QAThreadEngine import QA_Thread
 from QUANTAXIS.QAARP.QAUser import QA_User
+import threading
+from QAPUBSUB.consumer import subscriber_routing
+from QAPUBSUB.producer import publisher_routing
 
 
-class QARealtimeCollector_Stock(QA_Thread):
+class QARealtimeCollector_Stock(QA_Tdx_Executor):
     def __init__(self, username, password):
         super().__init__(name='QAREALTIME_COLLECTOR_STOCK')
         self.user = QA_User(username=username, password=password)
+        self.sub = subscriber_routing(exchange='QAQuotex', routing_key='stock')
+        self.sub.callback = self.callback
+        threading.Thread(target=self.sub.start, daemon=True).start()
 
-    def __getattr__(self, item):
-        try:
-            api = self.get_available()
-            func = api.__getattribute__(item)
-
-            def wrapper(*args, **kwargs):
-                res = self.executor.submit(func, *args, **kwargs)
-                self._queue.put(api)
-                return res
-            return wrapper
-        except:
-            return self.__getattr__(item)
-
-    def _queue_clean(self):
-        self._queue = queue.Queue(maxsize=200)
-
-    def _test_speed(self, ip, port=7709):
-
-        api = TdxHq_API(raise_exception=True, auto_retry=False)
-        _time = datetime.datetime.now()
-        # print(self.timeout)
-        try:
-            with api.connect(ip, port, time_out=1):
-                res = api.get_security_list(0, 1)
-                # print(res)
-                # print(len(res))
-                if len(api.get_security_list(0, 1)) > 800:
-                    return (datetime.datetime.now() - _time).total_seconds()
-                else:
-                    return datetime.timedelta(9, 9, 0).total_seconds()
-        except Exception as e:
-            return datetime.timedelta(9, 9, 0).total_seconds()
-
-    def get_market(self, code):
-        code = str(code)
-        if code[0] in ['5', '6', '9'] or code[:3] in ["009", "126", "110", "201", "202", "203", "204"]:
-            return 1
-        return 0
-
-    def subscriber(self, code):
+    def subscribe(self, code):
         """继续订阅
 
         Arguments:
@@ -55,17 +22,47 @@ class QARealtimeCollector_Stock(QA_Thread):
         """
         self.user.sub_code(code)
 
-    def get_realtime_concurrent(self, code):
-        code = [code] if isinstance(code, str) is str else code
+    def unsubscribe(self, code):
+        self.user.unsub_code(code)
 
-        try:
-            data = {self.get_security_quotes([(self.get_market(
-                x), x) for x in code[80 * pos:80 * (pos + 1)]]) for pos in range(int(len(code) / 80) + 1)}
-            return (pd.concat([self.api_no_connection.to_df(i.result()) for i in data]), datetime.datetime.now())
-        except:
-            pass
+    def callback(self, a, b, c, data):
+        data = json.loads(data)
+        if data['topic'] == 'subscribe':
+            print('receive new subscribe: {}'.format(data['code']))
+            new_ins = data['code'].replace('_', '.').split(',')
+
+            import copy
+            if isinstance(new_ins, list):
+                for item in new_ins:
+                    self.user.sub_code(item)
+            else:
+                self.user.sub_code(new_ins)
 
     def get_data(self):
+        data = self.get_realtime_concurrent(self.user.subscribed_code)
+        print(data)
 
     def run(self):
-        pass
+        while 1:
+            self.get_data()
+            import time
+            time.sleep(1)
+
+
+if __name__ == "__main__":
+    r = QARealtimeCollector_Stock('yutiansut', '940809')
+    r.subscribe('000001')
+    r.subscribe('000002')
+    r.start()
+
+    r.subscribe('600010')
+
+    import json
+    import time
+    time.sleep(2)
+    publisher_routing(exchange='QAQuotex', routing_key='stock').pub(json.dumps({
+        'topic': 'subscribe',
+        'code': '600012'
+    }), routing_key='stock')
+
+    r.unsubscribe('000001')
