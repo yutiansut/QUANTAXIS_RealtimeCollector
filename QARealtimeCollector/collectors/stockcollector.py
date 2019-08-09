@@ -37,6 +37,16 @@ class QARealtimeCollector_Stock(QA_Tdx_Executor):
                     self.user.sub_code(item)
             else:
                 self.user.sub_code(new_ins)
+        if data['topic'] == 'unsubscribe':
+            print('receive new unsubscribe: {}'.format(data['code']))
+            new_ins = data['code'].replace('_', '.').split(',')
+
+            import copy
+            if isinstance(new_ins, list):
+                for item in new_ins:
+                    self.user.unsub_code(item)
+            else:
+                self.user.unsub_code(new_ins)
 
     def get_data(self):
         data = self.get_realtime_concurrent(self.user.subscribed_code)
