@@ -69,7 +69,7 @@ setup(
     install_requires=['quantaxis','quantaxis_pubsub'],
     entry_points={
         'console_scripts': [
-            'QARC_Start:QARealtimeCollector.__init__:start'
+            'QARC_Start = QARealtimeCollector.__init__:start'
         ]
     },
     # install_requires=requirements,
