@@ -33,7 +33,7 @@ def read(fname):
 NAME = "qarealtime_collector"
 """
 """
-PACKAGES = ["QARealtimeCollector", "QARealtimeCollector.collectors"]
+PACKAGES = ["QARealtimeCollector", "QARealtimeCollector.collectors",  "QARealtimeCollector.clients"]
 """
 """
 

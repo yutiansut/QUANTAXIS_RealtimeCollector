@@ -36,3 +36,18 @@ pip install qarealtime_collector
 
 
 策略订阅(行情端) --> 基于QATrader的账户信息 --> 下单到EventMQ 业务总线
+
+
+## 关于订阅申请:
+
+```python
+    publisher_routing(exchange='QARealtime_Market', routing_key='stock'/'future').pub(
+        json.dumps({
+            'topic': 'subscribe',
+            'code': '000001'/ 'SHFE.rb1910'
+        })
+    )
+
+
+    订阅
+```

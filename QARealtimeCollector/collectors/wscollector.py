@@ -1,6 +1,6 @@
 #
 from QAPUBSUB.producer import publisher_routing
-from QAPUBSUB.consumer import subscriber
+from QAPUBSUB.consumer import subscriber_routing
 from QUANTAXIS.QAEngine import QA_Thread
 from QA_OTGBroker import on_pong, on_message, on_error, subscribe_quote, on_close, login, peek
 import websocket
@@ -12,7 +12,7 @@ import pymongo
 from QARealtimeCollector.util import fix_dict
 from QARealtimeCollector.setting import  mongo_ip, eventmq_ip
 
-class QARealtimeCollector_WsCollector(QA_Thread):
+class QARTC_WsCollector(QA_Thread):
     def __init__(self):
 
         super().__init__()
@@ -31,7 +31,7 @@ class QARealtimeCollector_WsCollector(QA_Thread):
         self.ws.on_open = _onopen
         self.data = {}
         self.subscribe_list = ['SHFE.rb1910', 'DCE.j1909']
-        self.sub = subscriber(host=eventmq_ip, exchange='QAQuote')
+        self.sub = subscriber_routing(host=eventmq_ip, exchange='QARealtime_Market', routing_key='future')
         self.sub.callback = self.callback
         threading.Thread(target=self.ws.run_forever,
                          name='market_websock', daemon=False).start()
@@ -82,4 +82,4 @@ class QARealtimeCollector_WsCollector(QA_Thread):
 
 
 if __name__ == "__main__":
-    QARealtimeCollector_WsCollector().start()
+    QARTC_WsCollector().start()

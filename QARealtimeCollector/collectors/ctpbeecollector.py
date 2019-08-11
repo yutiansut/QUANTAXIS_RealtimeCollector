@@ -8,7 +8,7 @@ from QUANTAXIS.QAUtil.QALogs import QA_util_log_info
 from QARealtimeCollector.setting import mongo_ip, eventmq_ip
 
 
-class QARealtimeCollector_CtpBeeCollector():
+class QARTC_CtpBeeCollector():
     def __init__(self, code):
         self.data = {}
         self.min5_data = {}

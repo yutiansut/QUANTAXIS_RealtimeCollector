@@ -1,2 +1,3 @@
-from QARealtimeCollector.collectors.ctpbeecollector import QARealtimeCollector_CtpBeeCollector
-from QARealtimeCollector.collectors.wscollector import QARealtimeCollector_WsCollector
+from QARealtimeCollector.collectors.ctpbeecollector import QARTC_CtpBeeCollector
+from QARealtimeCollector.collectors.wscollector import QARTC_WsCollector
+from QARealtimeCollector.collectors.stockcollector import  QARTC_Stock

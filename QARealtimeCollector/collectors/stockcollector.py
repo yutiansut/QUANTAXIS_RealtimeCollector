@@ -6,11 +6,12 @@ from QAPUBSUB.consumer import subscriber_routing
 from QAPUBSUB.producer import publisher_routing
 
 
-class QARealtimeCollector_Stock(QA_Tdx_Executor):
+class QARTC_Stock(QA_Tdx_Executor):
     def __init__(self, username, password):
         super().__init__(name='QAREALTIME_COLLECTOR_STOCK')
         self.user = QA_User(username=username, password=password)
-        self.sub = subscriber_routing(exchange='QAQuotex', routing_key='stock')
+        self.sub = subscriber_routing(
+            exchange='QARealtime_Market', routing_key='stock')
         self.sub.callback = self.callback
         threading.Thread(target=self.sub.start, daemon=True).start()
 
@@ -60,7 +61,7 @@ class QARealtimeCollector_Stock(QA_Tdx_Executor):
 
 
 if __name__ == "__main__":
-    r = QARealtimeCollector_Stock('yutiansut', '940809')
+    r = QARTC_Stock('yutiansut', '940809')
     r.subscribe('000001')
     r.subscribe('000002')
     r.start()
@@ -70,7 +71,7 @@ if __name__ == "__main__":
     import json
     import time
     time.sleep(2)
-    publisher_routing(exchange='QAQuotex', routing_key='stock').pub(json.dumps({
+    publisher_routing(exchange='QARealtime_Market', routing_key='stock').pub(json.dumps({
         'topic': 'subscribe',
         'code': '600012'
     }), routing_key='stock')
