@@ -9,11 +9,18 @@ from QARealtimeCollector.setting import mongo_ip, eventmq_ip
 
 
 class QARTC_CtpBeeCollector():
+    """这是接收重采样部分
+
+    Returns:
+        [type] -- [description]
+    """
+
     def __init__(self, code):
         self.data = {}
         self.min5_data = {}
-        self.pro = producer.publisher(host=eventmq_ip, exchange='1min_{}'.format(code), 
-                user=market_data_user, password=market_data_password)
+
+        self.pro = producer.publisher(host=eventmq_ip, exchange='1min_{}'.format(code),
+                                      user=market_data_user, password=market_data_password)
         self.pro_realtimemin = producer.publisher(host=eventmq_ip, exchange='realtime_min_{}'.format(
             code), user=market_data_user, password=market_data_password)
         self.is_send = False

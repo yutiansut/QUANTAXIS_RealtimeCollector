@@ -40,6 +40,7 @@ pip install qarealtime_collector
 
 ## 关于订阅申请:
 
+
 ```python
     publisher_routing(exchange='QARealtime_Market', routing_key='stock'/'future').pub(
         json.dumps({
@@ -48,6 +49,12 @@ pip install qarealtime_collector
         })
     )
 
-
-    订阅
 ```
+
+标准化订阅topic合约流程:
+
+
+1. 发起订阅请求
+2. 开始订阅数据
+3. 取消订阅(系统释放资源)
+
