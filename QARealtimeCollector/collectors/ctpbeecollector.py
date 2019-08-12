@@ -57,7 +57,7 @@ class QARTC_CtpBeeCollector():
 
         time = new_tick['datetime']
         old_data = self.data[new_tick['symbol']]
-        #print(old_data)
+        # print(old_data)
         old_data['close'] = new_tick['last_price']
         old_data['high'] = old_data['high'] if old_data['high'] > new_tick['last_price'] else new_tick['last_price']
         old_data['low'] = old_data['low'] if old_data['low'] < new_tick['last_price'] else new_tick['last_price']
@@ -75,39 +75,43 @@ class QARTC_CtpBeeCollector():
         self.is_send = True
 
     def upcoming_data(self, new_tick):
-        # print(new_tick)
         curtime = new_tick['datetime']
         time = curtime
-        try:
-            if new_tick['datetime'][17:19] == '00' and len(new_tick['datetime']) == 19:
-                print(True)
-                old_data = self.update_bar(new_tick)
-                self.last_volume = new_tick['volume']
-                self.publish_bar(new_tick['symbol'])
-                self.pro_realtimemin.pub(json.dumps(old_data))
-                self.data[new_tick['symbol']] = {}
-                self.data[new_tick['symbol']]['datetime'] = time
+        if curtime[11:13] in ['00', '01', '02',
+                              '09', '10', '11',
+                              '13', '14', '15',
+                              '21', '22', '23']:
 
-            elif new_tick['datetime'][17:19] == '00' and len(new_tick['datetime']) > 19:
-                if self.is_send:
-                    self.is_send = False
-                else:
+            try:
+                if new_tick['datetime'][17:19] == '00' and len(new_tick['datetime']) == 19:
+                    print(True)
+                    old_data = self.update_bar(new_tick)
+                    self.last_volume = new_tick['volume']
                     self.publish_bar(new_tick['symbol'])
+                    self.pro_realtimemin.pub(json.dumps(old_data))
+                    self.data[new_tick['symbol']] = {}
+                    self.data[new_tick['symbol']]['datetime'] = time
 
-                QA_util_log_info('xxx')
-                self.create_new(new_tick)
-                self.pro_realtimemin.pub(json.dumps(
-                    self.data[new_tick['symbol']]))
-                QA_util_log_info(self.data)
-            else:
-                try:
-                    self.update_bar(new_tick)
-                except:
+                elif new_tick['datetime'][17:19] == '00' and len(new_tick['datetime']) > 19:
+                    if self.is_send:
+                        self.is_send = False
+                    else:
+                        self.publish_bar(new_tick['symbol'])
+
+                    QA_util_log_info('xxx')
                     self.create_new(new_tick)
-                self.pro_realtimemin.pub(json.dumps(
-                    self.data[new_tick['symbol']]))
-        except Exception as e:
-            print(e)
+                    self.pro_realtimemin.pub(json.dumps(
+                        self.data[new_tick['symbol']]))
+                    QA_util_log_info(self.data)
+                else:
+                    try:
+                        self.update_bar(new_tick)
+                    except:
+                        self.create_new(new_tick)
+                    self.pro_realtimemin.pub(json.dumps(
+                        self.data[new_tick['symbol']]))
+            except Exception as e:
+                print(e)
 
     def callback(self, a, b, c, body):
         self.upcoming_data(json.loads(body))
