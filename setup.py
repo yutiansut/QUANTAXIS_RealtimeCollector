@@ -24,7 +24,6 @@ with io.open('QARealtimeCollector/__init__.py', 'rt', encoding='utf8') as f:
     AUTHOR = re.search(r'__author__ = \'(.*?)\'', context).group(1)
 
 
-
 def read(fname):
 
     return codecs.open(os.path.join(os.path.dirname(__file__), fname)).read()
@@ -33,12 +32,12 @@ def read(fname):
 NAME = "qarealtime_collector"
 """
 """
-PACKAGES = ["QARealtimeCollector", "QARealtimeCollector.collectors",  "QARealtimeCollector.clients"]
+PACKAGES = ["QARealtimeCollector", "QARealtimeCollector.collectors",
+            "QARealtimeCollector.clients", "QARealtimeCollector.datahandler"]
 """
 """
 
 DESCRIPTION = "QARealtimeCollector: QUANTAXIS REALTIME MARKETDATA COLLECTORS"
-
 
 
 KEYWORDS = ["quantaxis", "quant", "finance", "Backtest", 'Framework']
@@ -53,8 +52,6 @@ URL = "https://github.com/yutiansut/QUANTAXIS_RealtimeCollector"
 LICENSE = "MIT"
 
 
-
-
 setup(
     name=NAME,
     version=VERSION,
@@ -66,10 +63,11 @@ setup(
         'Intended Audience :: Developers',
         'Operating System :: OS Independent',
     ],
-    install_requires=['quantaxis','quantaxis_pubsub'],
+    install_requires=['quantaxis', 'quantaxis_pubsub'],
     entry_points={
         'console_scripts': [
-            'QARC_Start = QARealtimeCollector.__init__:start'
+            'QARC_Start = QARealtimeCollector.__init__:start',
+            'QARC_Resample = QARealtimeCollector.__init__:resample'
         ]
     },
     # install_requires=requirements,
