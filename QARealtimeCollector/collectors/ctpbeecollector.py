@@ -69,6 +69,7 @@ class QARTC_CtpBeeCollector():
         QA_util_log_info('=================================')
         QA_util_log_info('publish')
         QA_util_log_info('=================================')
+        print(self.data[symbol])
         self.pro.pub(json.dumps(self.data[symbol]))
         self.is_send = True
 
