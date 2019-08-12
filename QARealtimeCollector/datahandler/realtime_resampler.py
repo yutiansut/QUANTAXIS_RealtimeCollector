@@ -40,21 +40,21 @@ class QARTC_Resampler(QA_Thread):
 
     def callback(self, a, b, c, data):
         lastest_data = json.loads(str(data, encoding='utf-8'))
-        print(lastest_data['datetime'])
+        # print(lastest_data['datetime'])
         if self.dt != lastest_data['datetime'][15:16] or len(self.market_data) < 1:
             self.dt = lastest_data['datetime'][15:16]
-            print('new')
+            #print('new')
             self.market_data.append(lastest_data)
         else:
-            print('update')
+            #print('update')
             self.market_data[-1] = lastest_data
         df = pd.DataFrame(self.market_data)
         df = df.assign(datetime=pd.to_datetime(df.datetime), code=self.code, position=0,
                        tradetime=df.datetime.apply(QA_util_future_to_tradedatetime)).set_index('datetime')
-        #print(df)
+        # print(df)
         res = QA_data_futuremin_resample(df, self.freqence)
-        print(res)
-        print(res.iloc[-1].to_dict())
+        # print(res)
+        # print(res.iloc[-1].to_dict())
         self.pub.pub(json.dumps(res.iloc[-1].to_dict(), cls=NpEncoder))
 
     def run(self):
