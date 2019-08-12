@@ -57,6 +57,7 @@ class QARTC_CtpBeeCollector():
 
         time = new_tick['datetime']
         old_data = self.data[new_tick['symbol']]
+        print(old_data)
         old_data['close'] = new_tick['last_price']
         old_data['high'] = old_data['high'] if old_data['high'] > new_tick['last_price'] else new_tick['last_price']
         old_data['low'] = old_data['low'] if old_data['low'] < new_tick['last_price'] else new_tick['last_price']
