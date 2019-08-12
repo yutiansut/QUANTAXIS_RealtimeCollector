@@ -46,4 +46,4 @@ class resample_pub(QA_Thread):
             time.sleep(1)
 
 if __name__ == "__main__":
-    resample_pub().start
+    resample_pub().start()
