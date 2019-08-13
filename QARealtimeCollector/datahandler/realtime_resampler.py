@@ -20,6 +20,8 @@ class NpEncoder(json.JSONEncoder):
             return float(obj)
         elif isinstance(obj, np.ndarray):
             return obj.tolist()
+        elif isinstance(obj, pd.Timestamp):
+            return str(obj)
         else:
             return super(NpEncoder, self).default(obj)
 

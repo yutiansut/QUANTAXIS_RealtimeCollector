@@ -1,2 +1,5 @@
+from QAPUBSUB.consumer import  subscriber
+
 class QARTC_Clients():
-    pass
+    def __init__(self):
+        pass
