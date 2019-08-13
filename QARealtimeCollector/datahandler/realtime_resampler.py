@@ -2,7 +2,7 @@
 from QAPUBSUB.consumer import subscriber
 from QAPUBSUB.producer import publisher
 from QUANTAXIS.QAEngine.QAThreadEngine import QA_Thread
-from QUANTAXIS.QAData.data_resample import QA_data_futuremin_resample, QA_data_futuremin_resample_series
+from QUANTAXIS.QAData.data_resample import QA_data_futuremin_resample, QA_data_futuremin_resample_tb_kq
 from QUANTAXIS.QAUtil.QADate_trade import QA_util_future_to_tradedatetime
 from QARealtimeCollector.setting import eventmq_ip
 import json
@@ -27,7 +27,7 @@ class NpEncoder(json.JSONEncoder):
 
 
 class QARTC_Resampler(QA_Thread):
-    def __init__(self, code='rb1910', freqence='60min'):
+    def __init__(self, code='rb1910', freqence='60min', model='tb'):
         super().__init__()
         self.code = code
         self.freqence = freqence
@@ -38,6 +38,7 @@ class QARTC_Resampler(QA_Thread):
         self.sub.callback = self.callback
         self.market_data = []
         self.dt = None
+        self.model = model
         threading.Thread(target=self.sub.start).start()
 
     def callback(self, a, b, c, data):
@@ -45,19 +46,24 @@ class QARTC_Resampler(QA_Thread):
         # print(lastest_data['datetime'])
         if self.dt != lastest_data['datetime'][15:16] or len(self.market_data) < 1:
             self.dt = lastest_data['datetime'][15:16]
-            #print('new')
+            # print('new')
             self.market_data.append(lastest_data)
         else:
-            #print('update')
+            # print('update')
             self.market_data[-1] = lastest_data
         df = pd.DataFrame(self.market_data)
         df = df.assign(datetime=pd.to_datetime(df.datetime), code=self.code, position=0,
                        tradetime=df.datetime.apply(QA_util_future_to_tradedatetime)).set_index('datetime')
         # print(df)
-        res = QA_data_futuremin_resample(df, self.freqence)
+        if self.model == 'tb':
+
+            res = QA_data_futuremin_resample_tb_kq(df, self.freqence)
+        else:
+            res = QA_data_futuremin_resample(df, self.freqence)
         # print(res)
         # print(res.iloc[-1].to_dict())
-        self.pub.pub(json.dumps(res.reset_index().iloc[-1].to_dict(), cls=NpEncoder))
+        self.pub.pub(json.dumps(
+            res.reset_index().iloc[-1].to_dict(), cls=NpEncoder))
 
     def run(self):
         while True:

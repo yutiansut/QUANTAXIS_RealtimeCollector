@@ -17,6 +17,7 @@ def start(code):
 @click.command()
 @click.option('--code', default='rb1910')
 @click.option('--freq', default='5min')
-def resample(code, freq):
-    r = QARTC_Resampler(code, freq)
+@click.option('--model', default='tb')
+def resample(code, freq, model):
+    r = QARTC_Resampler(code, freq, model)
     r.start()
