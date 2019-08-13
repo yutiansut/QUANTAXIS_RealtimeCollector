@@ -57,7 +57,7 @@ class QARTC_Resampler(QA_Thread):
         res = QA_data_futuremin_resample(df, self.freqence)
         # print(res)
         # print(res.iloc[-1].to_dict())
-        self.pub.pub(json.dumps(res.iloc[-1].to_dict(), cls=NpEncoder))
+        self.pub.pub(json.dumps(res.reset_index().iloc[-1].to_dict(), cls=NpEncoder))
 
     def run(self):
         while True:
