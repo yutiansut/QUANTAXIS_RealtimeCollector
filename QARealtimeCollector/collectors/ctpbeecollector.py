@@ -19,7 +19,7 @@ class QARTC_CtpBeeCollector():
         self.data = {}
         self.min5_data = {}
 
-        self.pro = producer.publisher(host=eventmq_ip, exchange='1min_{}'.format(code),
+        self.pro = producer.publisher(host=eventmq_ip, exchange='bar_1min_{}'.format(code),
                                       user=market_data_user, password=market_data_password)
         self.pro_realtimemin = producer.publisher(host=eventmq_ip, exchange='realtime_min_{}'.format(
             code), user=market_data_user, password=market_data_password)
