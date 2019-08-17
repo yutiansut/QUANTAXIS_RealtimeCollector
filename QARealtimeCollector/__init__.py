@@ -1,4 +1,4 @@
-__version__ = '0.0.4'
+__version__ = '0.0.5'
 __author__ = 'yutiansut'
 
 import click
@@ -16,11 +16,12 @@ from QARealtimeCollector.datahandler import QARTC_Resampler
 def start(code):
     r = QARTC_CtpBeeCollector(code)
     r.start()
-    
+
+
 @click.command()
 @click.option('--code', default='rb1905')
-def start_ctp(code, date, price, interval):
-    r = QARTC_CTPTickCollector(code,)
+def start_ctp(code):
+    r = QARTC_CTPTickCollector(code)
     r.start()
 
 
@@ -31,9 +32,6 @@ def start_ctp(code, date, price, interval):
 def resample(code, freq, model):
     r = QARTC_Resampler(code, freq, model)
     r.start()
-
-
-
 
 
 @click.command()

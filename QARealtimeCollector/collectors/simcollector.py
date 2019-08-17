@@ -59,6 +59,7 @@ class QARTC_CTPTickCollector():
                                      [6:8]) + new_tick['UpdateTime'] + str('%.6f' % (new_tick['UpdateMillisec']/1000))[1:]
         time = curtime
         print(time)
+        print('get update tick', new_tick)
         if new_tick['UpdateTime'][-2:] == '00' and new_tick['UpdateMillisec'] == 0:
             print(True)
             old_data = self.update_bar(new_tick)
@@ -96,8 +97,3 @@ class QARTC_CTPTickCollector():
         while True:
             self.c.start()
 
-
-@click.command()
-@click.option('--code', default='rb1805')
-def tickhandle(code):
-    TickHandler(code).start()
