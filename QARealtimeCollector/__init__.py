@@ -16,6 +16,12 @@ from QARealtimeCollector.datahandler import QARTC_Resampler
 def start(code):
     r = QARTC_CtpBeeCollector(code)
     r.start()
+    
+@click.command()
+@click.option('--code', default='rb1905')
+def start_ctp(code, date, price, interval):
+    r = QARTC_CTPTickCollector(code,)
+    r.start()
 
 
 @click.command()
@@ -27,14 +33,6 @@ def resample(code, freq, model):
     r.start()
 
 
-@click.command()
-@click.option('--code', default='rb1905')
-@click.option('--date', default='20190327')
-@click.option('--price', default=3980)
-@click.option('--interval', default=0)
-def start_ctp(code, date, price, interval):
-    r = QARTC_CTPTickCollector(code,)
-    r.start()
 
 
 
