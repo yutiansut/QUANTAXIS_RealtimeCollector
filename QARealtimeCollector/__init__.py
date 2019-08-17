@@ -1,4 +1,4 @@
-__version__ = '0.0.5'
+__version__ = '0.0.6'
 __author__ = 'yutiansut'
 
 import click
@@ -19,7 +19,7 @@ def start(code):
 
 
 @click.command()
-@click.option('--code', default='rb1905')
+@click.option('--code', default='rb1910')
 def start_ctp(code):
     r = QARTC_CTPTickCollector(code)
     r.start()
