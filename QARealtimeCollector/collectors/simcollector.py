@@ -8,11 +8,10 @@ from QUANTAXIS.QAUtil.QALogs import QA_util_log_info
 
 
 class QARTC_CTPTickCollector():
-    def __init__(self, code):
+    def __init__(self, code, subexchange='tick'):
         self.data = {}
         self.is_send = False
         self.last_volume = 0
-
 
         self.pro = producer.publisher(exchange='bar_1min_{}'.format(
             code), user='admin', password='admin', host=eventmq_ip)
@@ -21,12 +20,11 @@ class QARTC_CTPTickCollector():
         self.c = consumer.subscriber_routing(
             exchange='tick', routing_key=code, user='admin', password='admin', host=eventmq_ip)
 
-
     def create_new(self, new_tick):
 
         time = '{}-{}-{} '.format(str(new_tick['TradingDay'])[0:4], str(new_tick['TradingDay'])[4:6], str(new_tick['TradingDay'])
                                   [6:8]) + new_tick['UpdateTime'] + str('%.6f' % (new_tick['UpdateMillisec']/1000))[1:]
-        print(time)                         
+        print(time)
         self.data[new_tick['InstrumentID']] = {'open': new_tick['LastPrice'],
                                                'high': new_tick['LastPrice'],
                                                'low': new_tick['LastPrice'],
