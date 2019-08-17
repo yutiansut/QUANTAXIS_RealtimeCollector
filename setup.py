@@ -67,7 +67,8 @@ setup(
     entry_points={
         'console_scripts': [
             'QARC_Start = QARealtimeCollector.__init__:start',
-            'QARC_Resample = QARealtimeCollector.__init__:resample'
+            'QARC_Resample = QARealtimeCollector.__init__:resample',
+            'QARC_Random = QARealtimeCollector.__init__:random'
         ]
     },
     # install_requires=requirements,
