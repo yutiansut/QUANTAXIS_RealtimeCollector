@@ -38,18 +38,48 @@ pip install qarealtime_collector
 策略订阅(行情端) --> 基于QATrader的账户信息 --> 下单到EventMQ 业务总线
 
 
+## 接受格式:
+
+
+期货:
+
+    - {type(realtime/bar)}_{freq(1min/5min/15min/60min)}_{code(rb1910/jm1909)}
+
+    期货的data exchange由3个参数组成:
+
+    1.type : realtime/bar (realtime就是在这个级别下的实时更新)
+    2.freq : 1min/ 5min/ 15min/ 30min/ 60min/
+    3.code : rb1910/j1909
+
+股票
+    - {type(realtime/tick/bar)}_{freq(1min/5min/15min/60min)}_{code(0000001/000002)}
+
+    期货的data exchange由3个参数组成:
+
+    1.type : realtime/bar (realtime就是在这个级别下的实时更新)
+    2.freq : 1min/ 5min/ 15min/ 30min/ 60min/
+    3.code : rb1910/j1909
+
+
+## 数据格式
+
+
+    realtime
+
+    {'open': float,
+    'high': float,
+    'low': float,
+    'close': float,
+    'code': str UPPERCASE(大写),
+    'datetime': str '2019-08-16 09:25:00:500000'
+    'volume': float
+    }
+
+
+
+
 ## 关于订阅申请:
 
-
-```python
-    publisher_routing(exchange='QARealtime_Market', routing_key='stock'/'future').pub(
-        json.dumps({
-            'topic': 'subscribe',
-            'code': '000001'/ 'SHFE.rb1910'
-        })
-    )
-
-```
 
 标准化订阅topic合约流程:
 

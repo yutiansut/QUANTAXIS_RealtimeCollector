@@ -43,7 +43,7 @@ class QARTC_Resampler(QA_Thread):
 
     def callback(self, a, b, c, data):
         lastest_data = json.loads(str(data, encoding='utf-8'))
-        # print(lastest_data['datetime'])
+        print(lastest_data)
         if self.dt != lastest_data['datetime'][15:16] or len(self.market_data) < 1:
             self.dt = lastest_data['datetime'][15:16]
             # print('new')
