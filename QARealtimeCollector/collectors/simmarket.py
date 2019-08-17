@@ -3,7 +3,7 @@ import json
 import time
 
 from QAPUBSUB.producer import publisher_routing
-from QARandomPrice import get_random_price
+from QUANTAXIS_RandomPrice import get_random_price
 from QARealtimeCollector.setting import eventmq_ip, mongo_ip
 
 
@@ -24,6 +24,6 @@ class QARTC_RandomTick():
     def start(self):
         for _, item in self.data.iterrows():
             print(item.to_dict())
-            time.sleep(interval)
+            time.sleep(self.interval)
             self.pub.pub(
                 json.dumps(item.to_dict()), routing_key=self.code)
