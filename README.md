@@ -37,8 +37,18 @@ pip install qarealtime_collector
 
 策略订阅(行情端) --> 基于QATrader的账户信息 --> 下单到EventMQ 业务总线
 
+## 启动
 
-## 接受格式:
+```bash
+nohup QACTPBEE --userid 133496  >> ./output_ctpbee.log 2>&1 &
+
+nohup QARC_Start --code rb1910 >> ./output_qarcCollect.log 2>&1 &
+
+nohup QARC_Resample --code rb1910 --freq 60min >> ./output_resample.log 2>&1 &
+```
+
+
+## EXCHANGE格式:
 
 
 期货:
