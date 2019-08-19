@@ -70,16 +70,21 @@ interval是tick间隔, 1 指的是1秒一个
     期货的data exchange由3个参数组成:
 
     1.type : realtime/bar (realtime就是在这个级别下的实时更新)
+
     2.freq : 1min/ 5min/ 15min/ 30min/ 60min/
+
     3.code : rb1910/j1909
 
 股票
+
     - {type(realtime/tick/bar)}_{freq(1min/5min/15min/60min)}_{code(0000001/000002)}
 
     期货的data exchange由3个参数组成:
 
     1.type : realtime/bar (realtime就是在这个级别下的实时更新)
+
     2.freq : 1min/ 5min/ 15min/ 30min/ 60min/
+
     3.code : rb1910/j1909
 
 
