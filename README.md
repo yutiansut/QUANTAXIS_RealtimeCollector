@@ -47,6 +47,18 @@ nohup QARC_Start --code rb1910 >> ./output_qarcCollect.log 2>&1 &
 nohup QARC_Resample --code rb1910 --freq 60min >> ./output_resample.log 2>&1 &
 ```
 
+如果是虚拟行情测试
+
+```
+nohup QARC_Random  --code rb1910 --date 20190619 --price 3800 --interval 1
+
+切记: 此命令会污染实时行情源, 切记不能和实时行情同时运行
+
+price是设定的初始价格, 会基于ou行情伪造实时tick
+
+interval是tick间隔, 1 指的是1秒一个
+```
+
 
 ## EXCHANGE格式:
 
