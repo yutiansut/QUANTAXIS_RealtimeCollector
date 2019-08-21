@@ -1,6 +1,6 @@
-FROM yutiansut/qabase:latest
+FROM daocloud.io/quantaxis/qactpbee:latest
 
-RUN \
+RUN cd /root \
     git clone https://github.com/yutiansut/QUANTAXIS_RealtimeCollector \
     && cd QUANTAXIS_RealtimeCollector && pip install -e .
 
