@@ -1,11 +1,13 @@
-from QUANTAXIS.QAFetch.QATdx_adv import QA_Tdx_Executor
-from QUANTAXIS.QAEngine.QAThreadEngine import QA_Thread
-from QUANTAXIS.QAARP.QAUser import QA_User
-from QUANTAXIS.QAUtil.QATransform import QA_util_to_json_from_pandas
+import json
 import threading
+
 from QAPUBSUB.consumer import subscriber_routing
-from QAPUBSUB.producer import publisher_routing
-from qarealtimecollector.setting import eventmq_ip
+from QAPUBSUB.producer import publisher, publisher_routing
+from QARealtimeCollector.setting import eventmq_ip
+from QUANTAXIS.QAARP.QAUser import QA_User
+from QUANTAXIS.QAEngine.QAThreadEngine import QA_Thread
+from QUANTAXIS.QAFetch.QATdx_adv import QA_Tdx_Executor
+from QUANTAXIS.QAUtil.QATransform import QA_util_to_json_from_pandas
 
 
 class QARTC_Stock(QA_Tdx_Executor):
@@ -15,7 +17,7 @@ class QARTC_Stock(QA_Tdx_Executor):
         self.sub = subscriber_routing(host=eventmq_ip,
                                       exchange='QARealtime_Market', routing_key='stock')
         self.sub.callback = self.callback
-        self.pub = publisher_routing(
+        self.pub = publisher(
             host=eventmq_ip, exchange='stocktransaction')
         threading.Thread(target=self.sub.start, daemon=True).start()
 
@@ -56,7 +58,7 @@ class QARTC_Stock(QA_Tdx_Executor):
     def get_data(self):
         data, time = self.get_realtime_concurrent(
             self.user.subscribed_code['stock_cn'])
-        print(QA_util_to_json_from_pandas(data))
+        self.pub.pub(json.dumps(QA_util_to_json_from_pandas(data.reset_index())))
 
     def run(self):
         while 1:
