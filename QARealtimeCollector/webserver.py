@@ -7,13 +7,14 @@ import tornado
 from tornado.options import (define, options, parse_command_line,
                              parse_config_file)
 from tornado.web import Application, RequestHandler, authenticated
+
+import QUANTAXIS as QA
 from qarealtimecollector.collectors import (QARTC_CtpBeeCollector,
                                             QARTC_CTPTickCollector,
                                             QARTC_RandomTick, QARTC_Stock,
                                             QARTC_WsCollector)
 from qarealtimecollector.datahandler import QARTC_Resampler
 from QAWebServer import QABaseHandler, QAWebSocketHandler
-import QUANTAXIS as QA
 
 
 class ONReqSubscribe(QAWebSocketHandler):

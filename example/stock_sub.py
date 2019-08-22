@@ -1,7 +1,7 @@
 import json
 
 import pandas as pd
-
+import threading
 from QAPUBSUB.consumer import subscriber
 from QAPUBSUB.producer import publisher_routing
 from QUANTAXIS.QAEngine import QA_Thread, QA_Task
@@ -12,7 +12,7 @@ from QUANTAXIS.QAEngine import QA_Thread, QA_Task
 class client(QA_Thread):
 
     def __init__(self):
-        super().__init__(name='qasubclient', daemon=False)
+        super().__init__(name='qasubclient')
 
         self.req = publisher_routing(
             exchange='QARealtime_Market', routing_key='stock')
@@ -24,7 +24,7 @@ class client(QA_Thread):
         req.pub(json.dumps({'topic': 'subscribe', 'code': code}),
                 routing_key='stock')
 
-    def callback(self, b, c, data):
+    def callback(self, a, b, c, data):
         data = json.loads(data)
 
         data = pd.DataFrame(data).set_index(['code']).loc[:, [
@@ -35,8 +35,18 @@ class client(QA_Thread):
 
     def run(self):
         threading.Thread(target=self.sub.start, daemon=True).start()
-        try:
-            data = self.queue.get_nowait()
+        while True:
+            try:
+                jobs = self.queue.get_nowait()
+                if jobs['topic'] == 'new_data':
+                    print(jobs['data'] - self.last_ab)
 
-        except Exception as e:
-            print(e)
+                    self.last_ab = jobs['data']
+                
+            except Exception as e:
+                print(e)
+
+            import time
+            time.sleep(1)
+
+client().start()
