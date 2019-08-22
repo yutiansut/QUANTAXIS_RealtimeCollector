@@ -1,18 +1,22 @@
 from QUANTAXIS.QAFetch.QATdx_adv import QA_Tdx_Executor
 from QUANTAXIS.QAEngine.QAThreadEngine import QA_Thread
 from QUANTAXIS.QAARP.QAUser import QA_User
+from QUANTAXIS.QAUtil.QATransform import QA_util_to_json_from_pandas
 import threading
 from QAPUBSUB.consumer import subscriber_routing
 from QAPUBSUB.producer import publisher_routing
+from qarealtimecollector.setting import eventmq_ip
 
 
 class QARTC_Stock(QA_Tdx_Executor):
     def __init__(self, username, password):
         super().__init__(name='QAREALTIME_COLLECTOR_STOCK')
         self.user = QA_User(username=username, password=password)
-        self.sub = subscriber_routing(
-            exchange='QARealtime_Market', routing_key='stock')
+        self.sub = subscriber_routing(host=eventmq_ip,
+                                      exchange='QARealtime_Market', routing_key='stock')
         self.sub.callback = self.callback
+        self.pub = publisher_routing(
+            host=eventmq_ip, exchange='stocktransaction')
         threading.Thread(target=self.sub.start, daemon=True).start()
 
     def subscribe(self, code):
@@ -50,8 +54,9 @@ class QARTC_Stock(QA_Tdx_Executor):
                 self.user.unsub_code(new_ins)
 
     def get_data(self):
-        data = self.get_realtime_concurrent(self.user.subscribed_code)
-        print(data)
+        data, time = self.get_realtime_concurrent(
+            self.user.subscribed_code['stock_cn'])
+        print(QA_util_to_json_from_pandas(data))
 
     def run(self):
         while 1:

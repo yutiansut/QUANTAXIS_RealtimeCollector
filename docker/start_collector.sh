@@ -1,2 +1,1 @@
-
-qarealtimecollector
+nohup QARC_START --code 
