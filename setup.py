@@ -69,7 +69,8 @@ setup(
             'QARC_Start = QARealtimeCollector.__init__:start',
             'QARC_Resample = QARealtimeCollector.__init__:resample',
             'QARC_Random = QARealtimeCollector.__init__:random',
-            'QARC_CTP = QARealtimeCollector.__init__:start_ctp'
+            'QARC_CTP = QARealtimeCollector.__init__:start_ctp',
+            'QARC_WEBSERVER = QARealtimeCollector.webserver:main'
         ]
     },
     # install_requires=requirements,
