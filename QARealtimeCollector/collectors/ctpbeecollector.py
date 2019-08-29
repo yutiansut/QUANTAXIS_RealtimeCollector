@@ -6,9 +6,10 @@ from QAREALTIME.setting import (market_data_ip, market_data_password,
                                 market_data_user)
 from QUANTAXIS.QAUtil.QALogs import QA_util_log_info
 from QARealtimeCollector.setting import mongo_ip, eventmq_ip
+from QUANTAXIS.QAEngine.QAThreadEngine import QA_Thread
 
 
-class QARTC_CtpBeeCollector():
+class QARTC_CtpBeeCollector(QA_Thread):
     """这是接收重采样部分
 
     Returns:
@@ -16,6 +17,7 @@ class QARTC_CtpBeeCollector():
     """
 
     def __init__(self, code):
+        super().__init__()
         self.data = {}
         self.min5_data = {}
 
@@ -84,7 +86,7 @@ class QARTC_CtpBeeCollector():
 
             try:
                 if new_tick['datetime'][17:19] == '00' and len(new_tick['datetime']) == 19:
-                    print(True)
+                    # print(True)
                     old_data = self.update_bar(new_tick)
                     self.last_volume = new_tick['volume']
                     self.publish_bar(new_tick['symbol'])
@@ -116,10 +118,9 @@ class QARTC_CtpBeeCollector():
     def callback(self, a, b, c, body):
         self.upcoming_data(json.loads(body))
 
-    def start(self):
+    def run(self):
         self.c.callback = self.callback
-        while True:
-            self.c.start()
+        self.c.start()
 
 
 if __name__ == '__main__':
