@@ -6,5 +6,5 @@ RUN cd /root \
 
 COPY start_collector.sh ~/
 
-
+EXPOSE 8011
 CMD ["bash", "start_collector.sh"]
