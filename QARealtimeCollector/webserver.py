@@ -17,12 +17,7 @@ from QARealtimeCollector.datahandler import QARTC_Resampler
 from QAWebServer import QABaseHandler, QAWebSocketHandler
 
 
-class ONReqSubscribe(QAWebSocketHandler):
-    def open(self):
-        pass
-
-
-class SUBSCRIBE_appler(QABaseHandler):
+class SUBSCRIBE_SERVER(QABaseHandler):
     handler = {'stock_cn': {}, 'future_cn': {}}
     resampler = {'stock_cn': {}, 'future_cn': {}}
 
@@ -38,6 +33,7 @@ class SUBSCRIBE_appler(QABaseHandler):
             self.write({'result':
                         {'stock_cn': list(self.resampler['stock_cn'].keys()),
                          'future_cn': list(self.resampler['future_cn'].keys())}})
+
     def post(self):
         action = self.get_argument('action')
         market_type = self.get_argument('market_type')
@@ -45,51 +41,33 @@ class SUBSCRIBE_appler(QABaseHandler):
         if action == 'new_handler':
 
             if code not in self.handler.keys():
-                self.handler[market_type][code] = QARTC_CtpBeeCollector(code)
-                self.handler[market_type][code].start()
-                self.write({'result': 'success'})
+                if market_type == 'future_cn':
+                    self.handler[market_type][code] = QARTC_CtpBeeCollector(
+                        code)
+                    self.handler[market_type][code].start()
+                    self.write({'result': 'success'})
+                else:
+                    pass
 
             else:
                 self.write({'result': 'already exist'})
-        if action == 'new_resampler':
+        elif action == 'new_resampler':
             frequence = self.get_argument('frequence')
-            self.resampler[market_type][(code, frequence)] = QARTC_Resampler(
-                code, frequence)
-            self.resampler[market_type][(code, frequence)].start()
-            self.write({'result': 'success'})
-
-
-class REQ_Sources(QABaseHandler):
-    user = QA.QA_User(username='quantaxis', password='quantaxis')
-
-    def post(self):
-        action = self.get_argument('action')
-
-        """
-        action: subscribe/ unsubscribe
-        username:
-        password:
-        client_id: xxxxxx
-        freqence: 1min
-        code:  RB1910
-        market: future_cn/ stock_cn
-        model: realtime/bar
-        """
-        freqence = self.get_argument('freqence')
-        code = self.get_argument('code')
-        market = self.get_argument('market')
-        model = self.get_argument('model')
-        self.user.sub_code(code, freqence, market)
-        self.user.save()
+            if (code, frequence) not in self.resampler.keys():
+                if market_type == 'future_cn':
+                    self.resampler[market_type][(code, frequence)] = QARTC_Resampler(
+                        code, frequence)
+                    self.resampler[market_type][(code, frequence)].start()
+                    self.write({'result': 'success'})
+                else:
+                    pass
+            else:
+                self.write({'result': 'already exist'})
 
 
 handlers = [
-    (r"/sub",
-     REQ_Sources),
     (r"/",
-     SUBSCRIBE_appler)
-
-
+     SUBSCRIBE_SERVER)
 ]
 
 
