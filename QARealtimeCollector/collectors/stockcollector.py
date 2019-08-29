@@ -69,7 +69,7 @@ class QARTC_Stock(QA_Tdx_Executor):
 
 
 if __name__ == "__main__":
-    r = QARTC_Stock('yutiansut', '940809')
+    r = QARTC_Stock()
     r.subscribe('000001')
     r.subscribe('000002')
     r.start()

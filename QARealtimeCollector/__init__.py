@@ -42,3 +42,7 @@ def resample(code, freq, model):
 def random(code, date, price, interval):
     r = QARTC_RandomTick(code, date, price, interval)
     r.start()
+
+
+def stock_collector():
+    QARTC_Stock().start()

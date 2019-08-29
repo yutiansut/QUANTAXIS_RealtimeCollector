@@ -9,6 +9,7 @@ from tornado.options import (define, options, parse_command_line,
 from tornado.web import Application, RequestHandler, authenticated
 
 import QUANTAXIS as QA
+from QAPUBSUB.producer import publisher, publisher_routing
 from QARealtimeCollector.collectors import (QARTC_CtpBeeCollector,
                                             QARTC_CTPTickCollector,
                                             QARTC_RandomTick, QARTC_Stock,
@@ -47,7 +48,11 @@ class SUBSCRIBE_SERVER(QABaseHandler):
                     self.handler[market_type][code].start()
                     self.write({'result': 'success'})
                 else:
-                    pass
+                    publisher_routing(exchange='QARealtime_Market', routing_key='stock').pub(json.dumps({
+                        'topic': 'subscribe',
+                        'code': code
+                    }), routing_key='stock')
+                    self.handler[market_type][code] = True
 
             else:
                 self.write({'result': 'already exist'})
