@@ -110,8 +110,25 @@ interval是tick间隔, 1 指的是1秒一个
 
 标准化订阅topic合约流程:
 
+QARC_Stock  (只有股票需要开)
+QARC_WEBSERVER
 
 1. 发起订阅请求
 2. 开始订阅数据
 3. 取消订阅(系统释放资源)
 
+此环节已经被docker集成, 具体参见QUANTAXIS的 qaservice
+
+
+期货订阅请求
+
+POST: http://localhost:8011?action=new_handler&market_type=future_cn&code=au1911
+
+股票订阅请求:
+
+POST: http://localhost:8011?action=new_handler&market_type=stock_cn&code=000001
+
+
+二次采样请求
+
+POST: http://localhost:8011?action=new_resampler&market_type=future_cn&code=au1911&frequence=2min
