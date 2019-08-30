@@ -15,6 +15,7 @@ from QARealtimeCollector.collectors import (QARTC_CtpBeeCollector,
                                             QARTC_RandomTick, QARTC_Stock,
                                             QARTC_WsCollector)
 from QARealtimeCollector.datahandler import QARTC_Resampler
+from QARealtimeCollector.setting import eventmq_ip
 from QAWebServer import QABaseHandler, QAWebSocketHandler
 
 
@@ -48,7 +49,7 @@ class SUBSCRIBE_SERVER(QABaseHandler):
                     self.handler[market_type][code].start()
                     self.write({'result': 'success'})
                 else:
-                    publisher_routing(exchange='QARealtime_Market', routing_key='stock').pub(json.dumps({
+                    publisher_routing(host=eventmq_ip, exchange='QARealtime_Market', routing_key='stock').pub(json.dumps({
                         'topic': 'subscribe',
                         'code': code
                     }), routing_key='stock')
