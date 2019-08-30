@@ -64,7 +64,7 @@ setup(
         'Operating System :: OS Independent',
     ],
     install_requires=['quantaxis', 'quantaxis_pubsub',
-                      'quantaxis-otgbroker', 'quantaxis-randomprice'],
+                      'quantaxis-otgbroker', 'quantaxis-randomprice','quantaxis_webserver'],
     entry_points={
         'console_scripts': [
             'QARC_Start = QARealtimeCollector.__init__:start',
