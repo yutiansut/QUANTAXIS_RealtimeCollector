@@ -58,8 +58,8 @@ class QARTC_Stock(QA_Tdx_Executor):
 
     def get_data(self):
         data, time = self.get_realtime_concurrent(self.codelist)
-        self.pub.pub(json.dumps(
-            QA_util_to_json_from_pandas(data.reset_index())))
+        data = QA_util_to_json_from_pandas(data.reset_index())
+        self.pub.pub(json.dumps(data))
 
     def run(self):
         while 1:
