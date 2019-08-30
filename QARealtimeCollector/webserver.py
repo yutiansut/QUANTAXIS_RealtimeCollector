@@ -2,7 +2,7 @@ import asyncio
 import os
 import sys
 import threading
-
+import json
 import tornado
 from tornado.options import (define, options, parse_command_line,
                              parse_config_file)
@@ -53,6 +53,7 @@ class SUBSCRIBE_SERVER(QABaseHandler):
                         'code': code
                     }), routing_key='stock')
                     self.handler[market_type][code] = True
+                    self.write({'result': 'success'})
 
             else:
                 self.write({'result': 'already exist'})
