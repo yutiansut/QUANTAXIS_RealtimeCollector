@@ -43,7 +43,6 @@ pip install qarealtime_collector
 
 
 标准化订阅topic合约流程:
-
 QARC_Stock  (只有股票需要开)
 QARC_WEBSERVER
 
@@ -51,7 +50,7 @@ QARC_WEBSERVER
 2. 开始订阅数据
 3. 取消订阅(系统释放资源)
 
-此环节已经被docker集成, 具体参见QUANTAXIS的 qaservice
+此环节已经被docker集成, 具体参见QUANTAXIS的 qaservice [https://github.com/QUANTAXIS/QUANTAXIS/tree/master/docker/qa-service-future]
 
 
 期货订阅请求
