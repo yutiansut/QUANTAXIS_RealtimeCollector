@@ -2,10 +2,8 @@ import datetime
 import json
 
 from QAPUBSUB import consumer, producer
-from QAREALTIME.setting import (market_data_ip, market_data_password,
-                                market_data_user)
 from QUANTAXIS.QAUtil.QALogs import QA_util_log_info
-from QARealtimeCollector.setting import mongo_ip, eventmq_ip
+from QARealtimeCollector.setting import mongo_ip, eventmq_ip, market_data_password, market_data_user
 from QUANTAXIS.QAEngine.QAThreadEngine import QA_Thread
 
 
