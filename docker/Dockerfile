@@ -4,7 +4,7 @@ RUN cd /root \
     && git clone https://github.com/yutiansut/QUANTAXIS_RealtimeCollector \
     && cd /root/QUANTAXIS_RealtimeCollector && pip install -e .
 
-COPY start_collector.sh ~/
+
 
 EXPOSE 8011
-CMD ["bash", "start_collector.sh"]
+CMD ["bash", "/root/QUANTAXIS_RealtimeCollector/docker/start_collector.sh"]
