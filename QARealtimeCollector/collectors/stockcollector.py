@@ -1,5 +1,6 @@
 import json
 import threading
+import datetime
 
 from QAPUBSUB.consumer import subscriber_routing
 from QAPUBSUB.producer import publisher, publisher_routing
@@ -65,6 +66,7 @@ class QARTC_Stock(QA_Tdx_Executor):
         while 1:
             self.get_data()
             import time
+            print(datetime.datetime.now())
             time.sleep(1)
 
 
