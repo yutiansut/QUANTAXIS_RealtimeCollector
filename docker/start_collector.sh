@@ -1,2 +1,2 @@
-nohup QARC_Stock &
+QARC_Stock &
 QARC_WEBSERVER
