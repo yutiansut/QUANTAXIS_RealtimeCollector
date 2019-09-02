@@ -7,8 +7,8 @@ RUN cd /root \
     && pip install quantaxis-servicedetect\
     && git clone https://github.com/yutiansut/QUANTAXIS_RealtimeCollector \
     && cd /root/QUANTAXIS_RealtimeCollector && pip install -e . \
-    && chmod + x /root/QUANTAXIS_RealtimeCollector/docker/start_collector.sh \
-    && chmod + x /root/QUANTAXIS_RealtimeCollector/docker/wait_for_it.sh
+    && chmod +x /root/QUANTAXIS_RealtimeCollector/docker/start_collector.sh \
+    && chmod +x /root/QUANTAXIS_RealtimeCollector/docker/wait_for_it.sh
 
 
 
