@@ -99,5 +99,5 @@ class QARTC_CTPTickCollector():
 
     def start(self):
         self.c.callback=self.callback
-        while True:
-            self.c.start()
+
+        self.c.start()

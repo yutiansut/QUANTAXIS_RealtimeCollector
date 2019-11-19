@@ -70,6 +70,7 @@ setup(
             'QARC_Start = QARealtimeCollector.__init__:start',
             'QARC_Resample = QARealtimeCollector.__init__:resample',
             'QARC_Random = QARealtimeCollector.__init__:random',
+            'QARC_Fast = QARealtimeCollector.__init__:faststart',
             'QARC_CTP = QARealtimeCollector.__init__:start_ctp',
             'QARC_Stock = QARealtimeCollector.__init__:stock_collector',
             'QARC_WEBSERVER = QARealtimeCollector.webserver:main'

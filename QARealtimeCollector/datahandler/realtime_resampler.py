@@ -39,8 +39,7 @@ class QARTC_Resampler(QA_Thread):
         self.market_data = []
         self.dt = None
         self.model = model
-        threading.Thread(target=self.sub.start).start()
-
+        
     def callback(self, a, b, c, data):
         lastest_data = json.loads(str(data, encoding='utf-8'))
         print(lastest_data)
@@ -66,9 +65,7 @@ class QARTC_Resampler(QA_Thread):
             res.reset_index().iloc[-1].to_dict(), cls=NpEncoder))
 
     def run(self):
-        while True:
-            # print(pd.DataFrame(self.data))
-            time.sleep(1)
+        self.sub.start()
 
 
 if __name__ == "__main__":
