@@ -5,6 +5,7 @@
 - 流程
 
 策略订阅(行情端) --> 基于QATrader的账户信息 --> 下单到EventMQ 业务总线
+
 ![image.png](http://pic.yutiansut.com/Flzp4Cr6qSDZmkd9H43-Quugm5oO)
 
 ## 数据
