@@ -1,82 +1,33 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    stock_resampler.py                                 :+:      :+:    :+:    #
+#    stockResampler.py                                  :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: zhongjy1992 <zhongjy1992@outlook.com>      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2019/10/01 15:00:56 by zhongjy1992       #+#    #+#              #
-#    Updated: 2019/10/02 21:29:57 by zhongjy1992      ###   ########.fr        #
+#    Created: 2020/03/03 22:19:37 by zhongjy1992       #+#    #+#              #
+#    Updated: 2020/03/06 14:06:35 by zhongjy1992      ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 import datetime
 import json
-import pandas as pd
+import logging
+import multiprocessing
+import os
 import threading
 import time
 
+import click
+import pandas as pd
 from QAPUBSUB.consumer import subscriber, subscriber_routing
 from QAPUBSUB.producer import publisher
-from QUANTAXIS.QAEngine.QAThreadEngine import QA_Thread
 from QARealtimeCollector.setting import eventmq_ip
-from QARealtimeCollector.datahandler.realtime_resampler import NpEncoder
+from QUANTAXIS.QAEngine.QAThreadEngine import QA_Thread
 
+from utils.common import create_empty_stock_df, tdx_stock_bar_resample_parallel, util_is_trade_time, \
+    get_file_name_by_date, logging_csv
 
-def tdx_bar_data_stock_resample(min_data, period=5):
-    """
-    1min 分钟线采样成 1,5,15,30,60,120 级别的分钟线
-    TODO 240时间戳有问题
-    :param min_data:
-    :param period:
-    :return:
-    """
-    min_data = min_data.reset_index()
-    if 'datetime' not in min_data.columns:
-        return None
-
-    if isinstance(period, float):
-        period = int(period)
-    elif isinstance(period, str):
-        period = period.replace('min', '')
-    elif isinstance(period, int):
-        pass
-    _period = '%sT' % period
-    # TODO 确认时间格式 yyyy-mm-dd HH:MM:SS
-    min_data.datetime = min_data.datetime.apply(datetime.datetime.fromisoformat)
-    # 9:30 - 11:30
-    min_data_morning = min_data.set_index(
-        "datetime").loc[datetime.time(9, 30):datetime.time(11, 30)].reset_index()
-    min_data_morning.index = pd.DatetimeIndex(
-        min_data_morning.datetime).to_period('T')
-    # 13:00 - 15:00
-    min_data_afternoon = min_data.set_index(
-        "datetime").loc[datetime.time(13, 00):datetime.time(15, 00)].reset_index()
-    min_data_afternoon.index = pd.DatetimeIndex(
-        min_data_afternoon.datetime).to_period('T')
-
-    _conversion = {
-        'code' : 'first',
-        'open' : 'first',
-        'high' : 'max',
-        'low'  : 'min',
-        'close': 'last',
-    }
-    if 'vol' in min_data.columns:
-        _conversion["vol"] = "sum"
-    elif 'volume' in min_data.columns:
-        _conversion["volume"] = "sum"
-    if 'amount' in min_data.columns:
-        _conversion['amount'] = 'sum'
-    _base = 0
-    if period > 60:
-        _base = 60
-    res = pd.concat([
-        min_data_morning.resample(
-            _period, label="right", closed="right", kind="period", loffset="0min", base=30+_base).apply(_conversion).dropna(),
-        min_data_afternoon.resample(
-            _period, label="right", closed="right", kind="period", loffset="0min", base=_base).apply(_conversion).dropna()
-    ])
-    return res.reset_index().set_index(["datetime", "code"]).sort_index()
+logger = logging.getLogger(__name__)
 
 
 class QARTCStockBarResampler(QA_Thread):
@@ -85,12 +36,13 @@ class QARTCStockBarResampler(QA_Thread):
         若有一个内存数据库，则可以把数据先写入数据库，然后再根据订阅读取进行拉取(redis, mongo？)
     """
 
-    def __init__(self, frequency='5min'):
+    def __init__(self, frequency='5min', date: datetime.datetime = None, log_dir='./log'):
         """
         暂时不支持单个股票重采样
         :param frequency:
         """
         super().__init__()
+        logger.info("QA实时股票Bar重采样,初始化...周期: %s" % frequency)
         if isinstance(frequency, float):
             self.frequency = int(frequency)
         elif isinstance(frequency, str):
@@ -98,12 +50,12 @@ class QARTCStockBarResampler(QA_Thread):
             if str.isnumeric(_frequency):
                 self.frequency = int(_frequency)
             else:
-                print("unknown frequency: %s" % frequency)
+                logger.error("不支持的周期 unknownFrequency: %s" % frequency)
                 return
         elif isinstance(frequency, int):
             self.frequency = frequency
         else:
-            print("unknown frequency: %s" % frequency)
+            logger.error("不支持的周期 unknownFrequency: %s" % frequency)
             return
 
         self.market_data = None
@@ -111,52 +63,132 @@ class QARTCStockBarResampler(QA_Thread):
         # 接收stock tick 数据
         self.sub = subscriber(
             host=eventmq_ip, exchange='realtime_stock_min')
-        self.sub.callback = self.stock_min_callback
+        self.sub.callback = self.on_message_callback
+        self.stock_sub = subscriber_routing(host=eventmq_ip, exchange='QARealtime_Market', routing_key='stock')
+        self.stock_sub.callback = self.on_stock_subscribe_message_callback
         # 发送重采样的数据
-        self.pub = publisher(
-            host=eventmq_ip, exchange='realtime_stock_{}_min'.format(self.frequency))
-        threading.Thread(target=self.sub.start).start()
+        self.pub = publisher(host=eventmq_ip, exchange='realtime_stock_{}_min'.format(self.frequency))
+        self.count = 0
+        self.code_list = []
+        cur_time = datetime.datetime.now() if date is None else date
+        self.cur_year = cur_time.year
+        self.cur_month = cur_time.month
+        self.cur_day = cur_time.day
+        # 多进程计算
+        self.cpu_count = multiprocessing.cpu_count() - 1
+        self.log_dir = log_dir
+        threading.Thread(target=self.sub.start, daemon=True).start()
+        threading.Thread(target=self.stock_sub.start, daemon=True).start()
 
-        print("QA_REALTIME_COLLECTOR_STOCK_BAR_RESAMPLER INIT, frequency: %s" % self.frequency)
 
-    def unsubscribe(self, item):
+    def publish_msg(self, text):
+        self.pub.pub(text)
+
+    def on_stock_subscribe_message_callback(self, channel, method, properties, data):
+        data = json.loads(data)
+        if data['topic'].lower() == 'subscribe':
+            logger.info('股票重采样,新的订阅: {}'.format(data['code']))
+            new_ins = data['code'].replace('_', '.').split(',')
+
+            if isinstance(new_ins, list):
+                for item in new_ins:
+                    self.subscribe_callback(item)
+            else:
+                self.subscribe_callback(new_ins)
+        if data['topic'].lower() == 'unsubscribe':
+            logger.info('股票重采样,取消订阅: {}'.format(data['code']))
+            new_ins = data['code'].replace('_', '.').split(',')
+
+            if isinstance(new_ins, list):
+                for item in new_ins:
+                    self.unsubscribe_callback(item)
+            else:
+                self.unsubscribe_callback(new_ins)
+
+    def subscribe_callback(self, code):
+        if code not in self.code_list:
+            self.code_list.append(code)
+            # initial time series data
+            # date=datetime.datetime(2019, 5, 9)
+            self.market_data = pd.concat([
+                self.market_data, create_empty_stock_df(code, date=datetime.datetime(self.cur_year, self.cur_month,
+                                                                                     self.cur_day))
+            ])
+            logger.info("当日数据初始化中,%s" % code)
+        pass
+
+    def unsubscribe_callback(self, item):
         # remove code from market data
         pass
 
-    def stock_min_callback(self, a, b, c, data):
-        latest_data = json.loads(str(data, encoding='utf-8'))
-        # print("latest data", latest_data)
-        latest_data = [pd.DataFrame.from_records(i) for i in latest_data if i is not None]
-        if len(latest_data) == 0:
-            print(datetime.datetime.now(), "no data")
-            return
-        context = pd.concat(latest_data)
+    def on_message_callback(self, channel, method, properties, body):
+        context = pd.read_msgpack(body)
         # merge update
         if self.market_data is None:
-            self.market_data = context
+            # self.market_data = context
+            pass
         else:
+            logger.info("Before market_data, concat and update start, 合并市场数据")
+            cur_time = datetime.datetime.now()
             self.market_data.update(context)
-        # print(self.market_data)
-        # group by code and resample
-        bar_data: pd.DataFrame = self.market_data.groupby(['code'], group_keys=False).apply(
-            tdx_bar_data_stock_resample, self.frequency)
-        # print(bar_data)
+            end_time = datetime.datetime.now()
+            cost_time = (end_time - cur_time).total_seconds()
+            logger.info("Before market_data, concat and update end, 合并市场数据, 耗时,cost: %s s" % cost_time)
+            logger.info(self.market_data.to_csv(float_format='%.3f'))
+            filename = get_file_name_by_date('stock.market.%s.csv', self.log_dir)
+            # 不追加，复写
+            logging_csv(self.market_data, filename, index=True, mode='w')
 
-        # if time is xx:00:00 -> xx:06:00, may be update two bar(xx:05:00, xx:10:00)
-        # client just use dataframe update
-        diff_data: pd.DataFrame = bar_data.groupby(['code'], group_keys=False).tail(2)
-        # print(diff_data)
+        # group by code and resample
         try:
-            res = diff_data.reset_index().to_dict()
-            self.pub.pub(json.dumps(res, cls=NpEncoder))
+            cur_time = datetime.datetime.now()
+            bar_data: pd.DataFrame = tdx_stock_bar_resample_parallel(
+                self.market_data[self.market_data.close > 0], self.frequency, jobs=self.cpu_count
+            )
+            end_time = datetime.datetime.now()
+            cost_time = (end_time - cur_time).total_seconds()
+            logger.info("数据重采样耗时,cost: %s" % cost_time)
+            logger.info("发送重采样数据中start")
+            self.publish_msg(bar_data.to_msgpack())
+            logger.info("发送重采样数据完毕end")
+
+            logger.info(bar_data.to_csv(float_format='%.3f'))
+            filename = get_file_name_by_date('stock.bar.%s.csv', self.log_dir)
+            # 不追加，复写
+            logging_csv(bar_data, filename, index=True, mode='w')
+            del bar_data
         except Exception as e:
-            print("reset index failure", e, diff_data.index, diff_data.columns)
+            logger.error("failure股票重采样数据. " + e.__str__())
+        finally:
+            logger.info("重采样计数 count : %s" % self.count)
+        self.count += 1
+        del context
 
     def run(self):
         while True:
-            print(datetime.datetime.now(), "stock resampler is running")
-            time.sleep(1)
+            # 9:15 - 11:31 and 12：58 - 15:00 获取
+            cur_time = datetime.datetime.now()
+            if util_is_trade_time(cur_time):  # 如果在交易时间
+                time.sleep(0.2)
+            else:
+                time.sleep(1)
+
+
+@click.command()
+# @click.argument()
+@click.option('-F', '--frequency', default='5min', help='calculate frequency', type=click.STRING)
+@click.option('-log', '--logfile', help="log file path", type=click.Path(exists=False))
+@click.option('-log_dir', '--log_dir', help="log path", type=click.Path(exists=False))
+def main(frequency: str, logfile: str = None, log_dir: str = None):
+    try:
+        from utils.logconf import update_log_file_config
+        logfile = 'stock.resample.log' if logfile is None else logfile
+        logging.config.dictConfig(update_log_file_config(logfile))
+    except Exception as e:
+        print(e.__str__())
+    # TODO suuport codelist file
+    QARTCStockBarResampler(frequency=frequency, log_dir=log_dir.replace('~', os.path.expanduser('~'))).run()
 
 
 if __name__ == '__main__':
-    QARTCStockBarResampler().start()
+    main()
