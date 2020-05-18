@@ -1,3 +1,15 @@
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    QATdx_adv.py                                       :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: zhongjy1992 <zhongjy1992@outlook.com>      +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2020/03/06 13:42:58 by zhongjy1992       #+#    #+#              #
+#    Updated: 2020/03/06 13:43:02 by zhongjy1992      ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
+
 # coding:utf-8
 #
 # The MIT License (MIT)
@@ -24,21 +36,24 @@
 
 
 import datetime
+import os
 import queue
+import logging
 import time
-import click
 from concurrent.futures import ThreadPoolExecutor
 from threading import Thread, Timer
 
+import click
 import pandas as pd
-from pytdx.hq import TdxHq_API
-
 from QUANTAXIS.QAEngine.QAThreadEngine import QA_Thread
 from QUANTAXIS.QAUtil.QADate_trade import QA_util_if_tradetime
 from QUANTAXIS.QAUtil.QASetting import DATABASE, stock_ip_list
 from QUANTAXIS.QAUtil.QASql import QA_util_sql_mongo_sort_ASCENDING
 from QUANTAXIS.QAUtil.QATransform import QA_util_to_json_from_pandas
+from pytdx.hq import TdxHq_API
 
+from QARealtimeCollector.utils.common import get_file_name_by_date, logging_csv
+logger = logging.getLogger(__name__)
 
 """
 准备做一个多连接的连接池执行器Executor
@@ -47,7 +62,7 @@ from QUANTAXIS.QAUtil.QATransform import QA_util_to_json_from_pandas
 
 
 class QA_Tdx_Executor(QA_Thread):
-    def __init__(self, thread_num=2, timeout=1, sleep_time=1, *args, **kwargs):
+    def __init__(self, thread_num=2, timeout:float=1, sleep_time=1, *args, **kwargs):
         super().__init__(name='QATdxExecutor')
         self.thread_num = thread_num
         self._queue = queue.Queue(maxsize=200)
@@ -82,14 +97,15 @@ class QA_Tdx_Executor(QA_Thread):
         # print(self.timeout)
         try:
             with api.connect(ip, port, time_out=1):
-                res = api.get_security_list(0, 1)
+                # api.get_security_list(0, 1)
+                # res = api.get_security_list(0, 1)
                 # print(res)
                 # print(len(res))
                 if len(api.get_security_list(0, 1)) > 800:
                     return (datetime.datetime.now() - _time).total_seconds()
                 else:
                     return datetime.timedelta(9, 9, 0).total_seconds()
-        except Exception as e:
+        except:
             return datetime.timedelta(9, 9, 0).total_seconds()
 
     def get_market(self, code):
@@ -139,7 +155,7 @@ class QA_Tdx_Executor(QA_Thread):
             return self._queue.get()
 
     def api_worker(self):
-        data = []
+        # data = []
         if self._queue.qsize() < 80:
             for item in stock_ip_list:
                 if self._queue.full():
@@ -156,10 +172,10 @@ class QA_Tdx_Executor(QA_Thread):
             Timer(0, self.api_worker).start()
         Timer(300, self.api_worker).start()
 
-    def _singal_job(self, context, id_, time_out=0.7):
+    def _singal_job(self, context, id_, code, time_out=0.7):
         try:
             _api = self.get_available()
-
+            # self.api_no_connection.to_df 为了调用 to_df的方法
             __data = context.append(self.api_no_connection.to_df(_api.get_security_quotes(
                 [(self._select_market_code(x), x) for x in code[80 * id_:80 * (id_ + 1)]])))
             __data['datetime'] = datetime.datetime.now()
@@ -174,7 +190,7 @@ class QA_Tdx_Executor(QA_Thread):
         code = [code] if isinstance(code, str) is str else code
         try:
             for id_ in range(int(len(code) / 80) + 1):
-                context = self._singal_job(context, id_)
+                context = self._singal_job(context, id_, code)
 
             data = context[['datetime', 'last_close', 'code', 'open', 'high', 'low', 'price', 'cur_vol',
                             's_vol', 'b_vol', 'vol', 'ask1', 'ask_vol1', 'bid1', 'bid_vol1', 'ask2', 'ask_vol2',
@@ -195,31 +211,46 @@ class QA_Tdx_Executor(QA_Thread):
         except:
             pass
 
-    def get_security_bar_concurrent(self, codelist, _type, lens):
+    def get_security_bar_concurrent(self, code_list, _type, lens):
+        """
+
+        :param code_list:
+        :param _type:
+        :param lens:
+        :return: [Dataframe, df, df]
+        """
         try:
             context = []
-            for code in codelist:
-                data = self.get_security_bars(self.get_frequence(_type), self.get_market(
-                    str(code)), str(code), 0, lens).result()
-                if data is not None:
-                    # add code in the data
-                    for i in range(0, len(data)):
-                        data[i]["code"] = code
+            for item in code_list:
+                _code = str(item)
+                _request_time = datetime.datetime.now().isoformat(sep=' ', timespec='seconds')
+                # print(_code, lens)
+                _data = {self.get_security_bars(self.get_frequence(_type), self.get_market(_code), _code, 0, lens)}
+                data = pd.concat([
+                    pd.DataFrame(i.result()) for i in _data if i is not None
+                ]).assign(code=_code, update=_request_time)
+                # data = pd.concat([
+                #     self.api_no_connection.to_df(i.result()) for i in _data if i is not None
+                # ]).assign(code=_code, update=_request_time)
                 context.append(data)
+                # record the dta
+                filename = get_file_name_by_date('stock.pytdx.%s.csv', os.path.join(os.path.expanduser('~'), './log/'))
+                logging_csv(data, filename, index=False, mode='a')
             return context
-
         except:
             raise Exception
 
     def _get_security_bars(self, context, code, _type, lens):
         try:
             _api = self.get_available()
+            _code = str(code) if not isinstance(code, str) else code
             for i in range(1, int(lens / 800) + 2):
                 context.extend(_api.get_security_bars(self.get_frequence(
-                    _type), self.get_market(str(code)), str(code), (i - 1) * 800, 800))
+                    _type), self.get_market(_code), _code, (i - 1) * 800, 800))
             self._queue.put(_api)
             return context
         except Exception as e:
+            logger.error('pytdx get bars failure' + e.__str__())
             return self._get_security_bars(context, code, _type, lens)
 
     def get_security_bar(self, code, _type, lens):
@@ -258,15 +289,15 @@ class QA_Tdx_Executor(QA_Thread):
                 data[0]['datetime'] = data[1]
                 self.save_mongo(data[0])
 
-                print('Time {}'.format(
+                logger.debug('Cost Time {}'.format(
                     (datetime.datetime.now() - _time).total_seconds()))
                 time.sleep(sleep)
-                print('Connection Pool NOW LEFT {} Available IP'.format(
+                logger.debug('Connection Pool NOW LEFT {} Available IP'.format(
                     self._queue.qsize()))
-                print('Program Last Time {}'.format(
+                logger.debug('Program Last Time {}'.format(
                     (datetime.datetime.now() - _time1).total_seconds()))
             else:
-                print('Not Trading time {}'.format(_time))
+                logger.warning('Not Trading time {}'.format(_time))
                 time.sleep(sleep)
 
 
@@ -275,27 +306,24 @@ def get_bar(timeout=1, sleep=1):
     _time1 = datetime.datetime.now()
     from QUANTAXIS.QAFetch.QAQuery_Advance import QA_fetch_stock_block_adv
     code = QA_fetch_stock_block_adv().code
-    print(len(code))
     x = QA_Tdx_Executor(timeout=float(timeout))
-    print(x._queue.qsize())
-    print(x.get_available())
 
     while True:
         _time = datetime.datetime.now()
         if QA_util_if_tradetime(_time):  # 如果在交易时间
             data = x.get_security_bar_concurrent(code, 'day', 1)
 
-            print('Time {}'.format(
+            logger.debug('Cost Time {}'.format(
                 (datetime.datetime.now() - _time).total_seconds()))
             time.sleep(sleep)
-            print('Connection Pool NOW LEFT {} Available IP'.format(
+            logger.debug('Connection Pool NOW LEFT {} Available IP'.format(
                 x._queue.qsize()))
-            print('Program Last Time {}'.format(
+            logger.debug('Program Last Time {}'.format(
                 (datetime.datetime.now() - _time1).total_seconds()))
 
             return data
         else:
-            print('Not Trading time {}'.format(_time))
+            logger.warning('Not Trading time {}'.format(_time))
             time.sleep(sleep)
 
 

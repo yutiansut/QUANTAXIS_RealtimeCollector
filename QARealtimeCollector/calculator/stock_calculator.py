@@ -22,7 +22,7 @@ from QARealtimeCollector.datahandler.realtime_resampler import NpEncoder
 from QUANTAXIS import QA_indicator_BOLL
 
 class RTCCaluator(QA_Thread):
-
+    # 只写了个样例框架
     def __init__(self, code_list: list, frequency='60min', strategy="HS300Enhance", init_data=None):
         """
 
